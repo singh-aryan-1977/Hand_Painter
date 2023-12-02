@@ -1,0 +1,29 @@
+import cv2
+import mediapipe as mp
+import time
+
+camera = cv2.VideoCapture(0)
+
+mpHands = mp.solutions.hands
+hands = mpHands.Hands()
+mpDraw = mp.solutions.drawing_utils
+while True:
+    success, img = camera.read()
+    if success:
+        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        results = hands.process(imgRGB)
+        
+        if results.multi_hand_landmarks:
+            for handsOnScreen in results.multi_hand_landmarks:
+                mpDraw.draw_landmarks(img, handsOnScreen, mpHands.HAND_CONNECTIONS)
+        
+        cv2.imshow("Image", img)
+        key = cv2.waitKey(1)
+        if key == 27:
+            break
+    else:
+        print("Error in showing video capture")
+        break
+    
+camera.release()
+cv2.destroyAllWindows()
