@@ -179,5 +179,6 @@ while True:
         print("Error in showing image")
         break
     
+# Ending camera session
 camera.release()
 cv2.destroyAllWindows() 
