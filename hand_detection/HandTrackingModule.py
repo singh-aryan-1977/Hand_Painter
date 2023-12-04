@@ -3,6 +3,30 @@ import mediapipe as mp
 import time
 
     
+"""
+WRIST = 0
+  THUMB_CMC = 1
+  THUMB_MCP = 2
+  THUMB_IP = 3
+  THUMB_TIP = 4
+  INDEX_FINGER_MCP = 5
+  INDEX_FINGER_PIP = 6
+  INDEX_FINGER_DIP = 7
+  INDEX_FINGER_TIP = 8
+  MIDDLE_FINGER_MCP = 9
+  MIDDLE_FINGER_PIP = 10
+  MIDDLE_FINGER_DIP = 11
+  MIDDLE_FINGER_TIP = 12
+  RING_FINGER_MCP = 13
+  RING_FINGER_PIP = 14
+  RING_FINGER_DIP = 15
+  RING_FINGER_TIP = 16
+  PINKY_MCP = 17
+  PINKY_PIP = 18
+  PINKY_DIP = 19
+  PINKY_TIP = 20
+"""
+
 class handDetector():
     def __init__(self,mode=False,maxHands=2,modelComplexity=1,detectionConf=0.5, trackConf=0.5):
         self.mode = mode
@@ -14,6 +38,7 @@ class handDetector():
         self.mpHands = mp.solutions.hands
         self.hands = self.mpHands.Hands(self.mode, self.maxHands, self.modelComplexity, self.detectionConf, self.trackConf)
         self.mpDraw = mp.solutions.drawing_utils
+        self.tipIds = [4,8,12,16,20]
         
     
     def find_hands(self, img, draw=True):
@@ -28,14 +53,14 @@ class handDetector():
     
     def find_position(self, img, handNumber=-1, draw=True):
         
-        landmarkList = []
+        self.landmarkList = []
         if handNumber == -1:
             if self.results.multi_hand_landmarks:
                 for handsOnScreen in self.results.multi_hand_landmarks:
                     for id, landmark in enumerate(handsOnScreen.landmark):
                         height, width, channels = img.shape
                         cx, cy = int(landmark.x * width), int(landmark.y*height)
-                        landmarkList.append([id,cx,cy])
+                        self.landmarkList.append([id,cx,cy])
                         if draw:
                             cv2.circle(img, (cx, cy), 15, (172,192,85), cv2.FILLED)
         else:
@@ -46,11 +71,27 @@ class handDetector():
                 for id, landmark in enumerate(handsOnScreen.landmark):
                     height, width, channels = img.shape
                     cx, cy = int(landmark.x * width), int(landmark.y*height)
-                    landmarkList.append([id,cx,cy])
+                    self.landmarkList.append([id,cx,cy])
                     if draw:
                         cv2.circle(img, (cx, cy), 15, (172,192,85), cv2.FILLED)
         
-        return landmarkList
+        return self.landmarkList
+    
+    def find_fingers_up(self):
+        fingers = []
+        
+        # For thumb
+        if self.landmarkList[self.tipIds[0]][1] < self.landmarkList[self.tipIds[0]-1][1]:
+            fingers.append(1)
+        else:
+            fingers.append(0)
+        
+        for id in range(1, 5):
+            if self.landmarkList[self.tipIds[id]][1] < self.landmarkList[self.tipIds[id]-2][2]:
+                fingers.append(1)
+            else:
+                fingers.append(0)
+        return fingers
 
 
 def main():
