@@ -87,7 +87,7 @@ class handDetector():
             fingers.append(0)
         
         for id in range(1, 5):
-            if self.landmarkList[self.tipIds[id]][1] < self.landmarkList[self.tipIds[id]-2][2]:
+            if self.landmarkList[self.tipIds[id]][2] < self.landmarkList[self.tipIds[id]-2][2]:
                 fingers.append(1)
             else:
                 fingers.append(0)
