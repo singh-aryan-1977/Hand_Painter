@@ -3,6 +3,7 @@ import cv2
 import os
 import numpy as np
 
+# Test
 
 folder_path = "./paint_headers"
 img_paths = os.listdir(folder_path)
