@@ -32,38 +32,41 @@ magnifying_sidebar = overlay_list['magnifying.png']
 
 # Setting window size
 camera = cv2.VideoCapture(0)
-camera.set(3, 1280)
-camera.set(4,720)
+camera.set(3, 1280) # Width
+camera.set(4,720) # Height
 
 # Setting drawing canvas
 drawing_canvas = np.zeros((720, 1280, 3), np.uint8)
 
 #importing hand detector module
-detector = htm.handDetector(detectionConf=0.85)
+detector = htm.handDetector(detection_conf=0.85)
 
 
 # Function to handleMagnifying increases and decreases
-def handleMagnifying(fingers, ring_x3, ring_y3):
-    if 270 < ring_y3 < 320:
-        if brush_thickness == 200:
-            return
-        brush_thickness += 10
-        # print("Reached magnifying increase for paintbrush")
-    elif 360 < ring_y3 < 400:
-        if brush_thickness == 0:
-            return
-        brush_thickness -= 10
-        # print("Reached magnifying decrease for paintbrush")
-    elif 500 < ring_y3 < 540:
-        if eraser_thickness == 200:
-            return
-        eraser_thickness += 10
-        # print("Reached magnifying increase for eraser")
-    elif 580 < ring_y3 < 610:
-        # print("reached magnifting decrease for eraser")
-        if eraser_thickness == 0:
-            return
-        eraser_thickness -= 10
+def handleMagnifying(ring_x3, ring_y3):
+    global brush_thickness
+    global eraser_thickness
+    if ring_x3 < 100:
+        if 270 < ring_y3 < 320:
+            if brush_thickness >= 200:
+                return
+            brush_thickness += 10
+            # print("Reached magnifying increase for paintbrush")
+        elif 360 < ring_y3 < 400:
+            if brush_thickness <= 10:
+                return
+            brush_thickness -= 10
+            # print("Reached magnifying decrease for paintbrush")
+        elif 500 < ring_y3 < 540:
+            if eraser_thickness >= 200:
+                return
+            eraser_thickness += 10
+            # print("Reached magnifying increase for eraser")
+        elif 580 < ring_y3 < 610:
+            # print("reached magnifting decrease for eraser")
+            if eraser_thickness <= 10:
+                return
+            eraser_thickness -= 10
     return 
 
 while True:
@@ -144,13 +147,13 @@ while True:
                 drawing_mode = False
                 
             if fingers[1] and fingers[2] and fingers[3]:
-                print("Index\n")
-                print(x1,y1)
-                print("Middle\n")
-                print(x2,y2)
-                print("Ring\n")
-                print(x3,y3)
-                handleMagnifying(fingers, x3, y3)
+                # print("Index\n")
+                # print(x1,y1)
+                # print("Middle\n")
+                # print(x2,y2)
+                # print("Ring\n")
+                # print(x3,y3)
+                handleMagnifying(x3, y3)
                 
         # Optimizing overlay of drawing canvas and original image        
         img_gray = cv2.cvtColor(drawing_canvas, cv2.COLOR_BGR2GRAY)
@@ -166,6 +169,8 @@ while True:
         img[0:HEADER_HEIGHT, 0:HEADER_WIDTH] = header
         img[120:,0:100] = magnifying_sidebar
         # img = cv2.addWeighted(img,0.5,drawingCanvas,0.5,0)
+        text_to_display = f'Brush Thickness: {brush_thickness} | Eraser Thickness: {eraser_thickness}'
+        cv2.putText(img, text_to_display, (800, 150), cv2.FONT_HERSHEY_DUPLEX, 0.65, (255, 255, 255), 2, cv2.LINE_AA)
         cv2.imshow("Image", img)
         # cv2.imshow("Drawing canvas", drawingCanvas)
         key = cv2.waitKey(1)

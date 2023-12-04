@@ -28,66 +28,66 @@ WRIST = 0
 """
 
 class handDetector():
-    def __init__(self,mode=False,maxHands=2,modelComplexity=1,detectionConf=0.5, trackConf=0.5):
+    def __init__(self,mode=False,max_hands=2,model_complexity=1,detection_conf=0.5, track_conf=0.5):
         self.mode = mode
-        self.maxHands = maxHands
-        self.modelComplexity=modelComplexity
-        self.detectionConf = detectionConf
-        self.trackConf = trackConf
+        self.max_hands = max_hands
+        self.model_complexity=model_complexity
+        self.detection_conf = detection_conf
+        self.track_conf = track_conf
         
-        self.mpHands = mp.solutions.hands
-        self.hands = self.mpHands.Hands(self.mode, self.maxHands, self.modelComplexity, self.detectionConf, self.trackConf)
-        self.mpDraw = mp.solutions.drawing_utils
-        self.tipIds = [4,8,12,16,20]
+        self.mp_hands = mp.solutions.hands
+        self.hands = self.mp_hands.Hands(self.mode, self.max_hands, self.model_complexity, self.detection_conf, self.track_conf)
+        self.mp_draw = mp.solutions.drawing_utils
+        self.tip_ids = [4,8,12,16,20]
         
     
     def find_hands(self, img, draw=True):
-        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        self.results = self.hands.process(imgRGB)
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        self.results = self.hands.process(img_rgb)
         
         if self.results.multi_hand_landmarks:
-            for handsOnScreen in self.results.multi_hand_landmarks:
+            for hands_on_screen in self.results.multi_hand_landmarks:
                 if draw:
-                    self.mpDraw.draw_landmarks(img, handsOnScreen, self.mpHands.HAND_CONNECTIONS)
+                    self.mp_draw.draw_landmarks(img, hands_on_screen, self.mp_hands.HAND_CONNECTIONS)
         return img
     
-    def find_position(self, img, handNumber=-1, draw=True):
+    def find_position(self, img, hand_number=-1, draw=True):
         
-        self.landmarkList = []
-        if handNumber == -1:
+        self.landmark_list = []
+        if hand_number == -1:
             if self.results.multi_hand_landmarks:
-                for handsOnScreen in self.results.multi_hand_landmarks:
-                    for id, landmark in enumerate(handsOnScreen.landmark):
-                        height, width, channels = img.shape
+                for hands_on_screen in self.results.multi_hand_landmarks:
+                    for id, landmark in enumerate(hands_on_screen.landmark):
+                        height, width, _ = img.shape
                         cx, cy = int(landmark.x * width), int(landmark.y*height)
-                        self.landmarkList.append([id,cx,cy])
+                        self.landmark_list.append([id,cx,cy])
                         if draw:
                             cv2.circle(img, (cx, cy), 15, (172,192,85), cv2.FILLED)
         else:
             # print("got here")
             # print(handNumber)
             if self.results.multi_hand_landmarks:
-                handsOnScreen = self.results.multi_hand_landmarks[handNumber]
-                for id, landmark in enumerate(handsOnScreen.landmark):
+                hands_on_screen = self.results.multi_hand_landmarks[hand_number]
+                for id, landmark in enumerate(hands_on_screen.landmark):
                     height, width, channels = img.shape
                     cx, cy = int(landmark.x * width), int(landmark.y*height)
-                    self.landmarkList.append([id,cx,cy])
+                    self.landmark_list.append([id,cx,cy])
                     if draw:
                         cv2.circle(img, (cx, cy), 15, (172,192,85), cv2.FILLED)
         
-        return self.landmarkList
+        return self.landmark_list
     
     def find_fingers_up(self):
         fingers = []
         
         # For thumb
-        if self.landmarkList[self.tipIds[0]][1] < self.landmarkList[self.tipIds[0]-1][1]:
+        if self.landmark_list[self.tip_ids[0]][1] < self.landmark_list[self.tip_ids[0]-1][1]:
             fingers.append(1)
         else:
             fingers.append(0)
         
         for id in range(1, 5):
-            if self.landmarkList[self.tipIds[id]][2] < self.landmarkList[self.tipIds[id]-2][2]:
+            if self.landmark_list[self.tip_ids[id]][2] < self.landmark_list[self.tip_ids[id]-2][2]:
                 fingers.append(1)
             else:
                 fingers.append(0)
@@ -95,8 +95,8 @@ class handDetector():
 
 
 def main():
-    pTime = 0
-    cTime = 0
+    p_time = 0
+    c_time = 0
     camera = cv2.VideoCapture(0)
     detector = handDetector()
     while True:
@@ -104,11 +104,11 @@ def main():
         if success:
             img = detector.find_hands(img)
             detector.find_position(img)
-            cTime = time.time()
-            fps = 1/(cTime-pTime)
-            pTime = cTime
+            c_time = time.time()
+            fps = 1/(c_time-p_time)
+            p_time = c_time
         
-            cv2.putText(img, str(int(fps)), (10,70), cv2.FONT_HERSHEY_COMPLEX,3, (255,0,255), 3)
+            # cv2.putText(img, str(int(fps)), (10,70), cv2.FONT_HERSHEY_COMPLEX,3, (255,0,255), 3)
             cv2.imshow("Image", img)
             key = cv2.waitKey(1)
             if key == 27:
