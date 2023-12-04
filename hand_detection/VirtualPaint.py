@@ -3,8 +3,6 @@ import cv2
 import os
 import numpy as np
 
-# Test2
-
 folder_path = "./paint_headers"
 img_paths = os.listdir(folder_path)
 img_paths.remove('.DS_Store')
